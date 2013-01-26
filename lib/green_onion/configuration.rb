@@ -1,12 +1,12 @@
 module GreenOnion
   class Configuration
 
-    attr_writer :threshold, :skins_dir, :driver
+    attr_writer :threshold, :skins_dir, :driver, :fail_on_different_dimensions
 
     def dimensions=(options)
       @dimensions = options
     end
-    
+
     def dimensions
       @dimensions ||= { :height => 768, :width => 1024 }
     end
@@ -21,6 +21,10 @@ module GreenOnion
 
     def driver
       @driver ||= :webkit
+    end
+
+    def fail_on_different_dimensions?
+      @fail_on_different_dimensions ||= false
     end
 
     # Uses the driver and dimensions configuration vars to return a Browser object
@@ -41,9 +45,9 @@ module GreenOnion
 
     # Serves as a template for skin_name getter/setter
     def skin_namespace_hash(options = {})
-      { 
-        :match   =>  options[:match] ? options[:match] : /[\/]/, 
-        :replace =>  options[:replace] ? options[:replace] : "_", 
+      {
+        :match   =>  options[:match] ? options[:match] : /[\/]/,
+        :replace =>  options[:replace] ? options[:replace] : "_",
         :prefix  =>  options[:prefix] ? options[:prefix] : nil,
         :root    =>  options[:root] ? options[:root] : "root"
       }
