@@ -7,6 +7,10 @@ module GreenOnion
     attr_accessor :percentage_changed, :total_px, :changed_px
     attr_reader :diffed_image
 
+    def initialize(configuration)
+      @configuration = configuration
+    end
+
     # Pulled from Jeff Kreeftmeijer's post here: http://jeffkreeftmeijer.com/2011/comparing-images-and-creating-image-diffs/
     # Thanks Jeff!
     def diff_images(org, fresh)
@@ -19,7 +23,13 @@ module GreenOnion
       begin
         diff_iterator
       rescue ChunkyPNG::OutOfBounds
-        warn "Skins are different sizes. Please delete #{org} and/or #{fresh}.".color(:yellow)
+        message = "Skins are different sizes. Please delete #{org} and/or #{fresh}."
+
+        if @configuration.fail_on_different_dimensions?
+          raise message
+        else
+          warn message.color(:yellow)
+        end
       end
     end
 
@@ -28,7 +38,7 @@ module GreenOnion
       @images.first.height.times do |y|
         @images.first.row(y).each_with_index do |pixel, x|
           unless pixel == @images.last[x,y]
-            @diff_index << [x,y] 
+            @diff_index << [x,y]
             pixel_difference_filter(pixel, x, y)
           end
         end
@@ -38,7 +48,7 @@ module GreenOnion
     # Changes the pixel color to be the opposite RGB value
     def pixel_difference_filter(pixel, x, y)
       chans = []
-      [:r, :b, :g].each do |chan| 
+      [:r, :b, :g].each do |chan|
         chans << channel_difference(chan, pixel, x, y)
       end
       @images.last[x,y] = ChunkyPNG::Color.rgb(chans[0], chans[1], chans[2])
@@ -73,7 +83,7 @@ module GreenOnion
       rescue NoMethodError
         puts "Both skins are the same.".color(:yellow)
       end
-      
+
       @images.last.save(@diffed_image)
     end
 
